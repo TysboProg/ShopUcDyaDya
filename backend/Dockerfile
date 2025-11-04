@@ -1,15 +1,23 @@
-FROM python:3.10.12-slim as build
+FROM python:3.11.9-slim-bullseye
 
-ENV POETRY_VERSION=1.8.3
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
 
-RUN pip install poetry==${POETRY_VERSION}
+WORKDIR /app
 
-WORKDIR /app/
+RUN pip install --upgrade pip wheel poetry
 
-COPY . .
+RUN poetry config virtualenvs.create false
 
-RUN poetry install
+COPY pyproject.toml poetry.lock ./
 
-EXPOSE 8000
+RUN poetry install --no-root --no-interaction --no-ansi
 
-CMD [ "poetry", "run", "python", "main.py" ]
+COPY app /app/
+COPY migrations /app/migrations/
+COPY /scripts/migrate.sh /app/
+COPY alembic.ini /app/
+
+RUN chmod +x migrate.sh
+
+ENTRYPOINT ["./migrate.sh"]

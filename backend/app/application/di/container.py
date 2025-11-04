@@ -8,11 +8,11 @@ from .providers import (
     ServiceProvider,
     PromoValidatorProvider
 )
-
+from settings.config import settings
 
 def create_container():
     providers = [
-        DatabaseProvider(),
+        DatabaseProvider(url=settings.db.url.encoded_string()),
         RepositoryProvider(),
         FastapiProvider(),
         ServiceProvider(),

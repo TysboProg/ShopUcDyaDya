@@ -7,15 +7,17 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker
 )
 
-from settings.config import settings
-
-
 class DatabaseProvider(Provider):
     """Провайдер для зависимостей базы данных"""
+
+    def __init__(self, url: str):
+        self.url = url
+        super().__init__()
+
     @provide(scope=Scope.APP)
     def create_engine(self) -> async_sessionmaker[AsyncSession]:
         engine = create_async_engine(
-            settings.db.url.encoded_string(),
+            url=self.url,
             pool_pre_ping=True,
         )
 

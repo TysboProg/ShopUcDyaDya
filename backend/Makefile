@@ -1,40 +1,39 @@
-# Переменные для удобства
-ALEMBIC = alembic
-PYTHON = poetry run python
-MAIN = main.py
+DC = docker compose
+EXEC = docker exec -it
+LOGS = docker logs
+APP_CONTAINER = app
 
-# Цель по умолчанию (если просто вызвать `make`)
-.DEFAULT_GOAL := help
-
-# Цель для вывода справки
 help:
-	@echo "Используйте следующие команды:"
-	@echo "  make db_migration       - Создать автоматическую миграцию"
-	@echo "  make db_push            - Применить миграции к базе данных"
-	@echo "  make db_downgrade       - Откатить базу данных до конкретной версии (используйте revision=<revision>)"
-	@echo "  make start              - Запустить приложение"
-	@echo "  make help               - Показать эту справку"
+	@echo "Available commands:"
+	@echo "make up        - Start containers"
+	@echo "make down      - Stop and delete containers"
+	@echo "make app-shell - Opens the terminal of the app container"
+	@echo "make logs-all  - Tracking logs of all containers"
+	@echo "make test      - Running tests in the app container "
+	@echo "make ps        - Viewing container statuses "
+	@echo "make config    - Validation of the docker-compose file"
 
-# Цель для создания автоматической миграции
-db_migration:
-	$(ALEMBIC) revision --autogenerate
+up:
+	@echo "$(GREEN)Starting containers...$(NC)"
+	${DC} up --build -d
 
-# Цель для применения миграций к базе данных
-db_push:
-	$(ALEMBIC) upgrade head
+down:
+	@echo "$(GREEN)Stopping containers...$(NC)"
+	${DC} down
 
-# Цель для отката базы данных до конкретной версии
-db_downgrade:
-ifndef revision
-	@echo "Ошибка: Не указана версия для отката. Используйте revision=<revision>"
-	@exit 1
-else
-	$(ALEMBIC) downgrade $(revision)
-endif
+app-shell:
+	${EXEC} ${APP_CONTAINER} bash
 
-# Цель для запуска приложения
-start:
-	$(PYTHON) $(MAIN)
+logs-all:
+	${DC} logs -f
 
-# Файлы, которые не являются реальными файлами
-.PHONY: help db_migration db_push db_downgrade start
+test:
+	${EXEC} ${APP_CONTAINER} pytest
+
+ps:
+	${DC} ps
+
+config:
+	${DC} config
+
+.PHONY: help up down app-shell logs-all test ps config

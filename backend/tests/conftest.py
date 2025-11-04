@@ -1,15 +1,14 @@
 from collections.abc import AsyncGenerator
-import pytest_asyncio
-from dishka import make_async_container
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-)
 
+import pytest_asyncio
 from application.di.providers import (
-    ServiceProvider,
+    DatabaseProvider,
+    PromoValidatorProvider,
     RepositoryProvider,
-    PromoValidatorProvider, DatabaseProvider
+    ServiceProvider,
 )
+from dishka import make_async_container
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest_asyncio.fixture
@@ -26,7 +25,7 @@ async def dishka_container():
 
 
 @pytest_asyncio.fixture
-async def db_session(dishka_container) -> AsyncGenerator[AsyncSession]:
+async def db_session(dishka_container) -> AsyncGenerator[AsyncSession, None]:
     """Фикстура для тестовой сессии"""
     async with dishka_container() as request_container:
         session = await request_container.get(AsyncSession)

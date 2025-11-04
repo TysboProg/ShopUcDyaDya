@@ -1,10 +1,5 @@
-from .repositories import RepositoryProvider
 from .database import DatabaseProvider
-from .services import ServiceProvider, PromoValidatorProvider
+from .repositories import RepositoryProvider
+from .services import PromoValidatorProvider, ServiceProvider
 
-__all__ = (
-    "RepositoryProvider",
-    "DatabaseProvider",
-    "ServiceProvider",
-    "PromoValidatorProvider"
-)
+__all__ = ("RepositoryProvider", "DatabaseProvider", "ServiceProvider", "PromoValidatorProvider")

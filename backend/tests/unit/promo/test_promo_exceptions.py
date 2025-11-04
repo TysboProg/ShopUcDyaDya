@@ -1,8 +1,8 @@
 from domain.exceptions.promo import (
-    PromoCodeNotFoundException,
     PromoCodeAlreadyExistsException,
+    PromoCodeAlreadyUsedException,
     PromoCodeExpiredException,
-    PromoCodeAlreadyUsedException
+    PromoCodeNotFoundException,
 )
 
 

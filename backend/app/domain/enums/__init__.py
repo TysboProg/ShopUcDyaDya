@@ -1,8 +1,4 @@
-from domain.enums.promo import (
-    UcAmount,
-    PromoField,
-    PromoStatus
-)
+from domain.enums.promo import PromoField, PromoStatus, UcAmount
 
 __all__ = (
     "UcAmount",

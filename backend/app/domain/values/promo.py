@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
@@ -23,13 +23,11 @@ class PromoCodeExpiration:
     expires_at: datetime
 
     @classmethod
-    def create(cls, duration_days: int) -> 'PromoCodeExpiration':
+    def create(cls, duration_days: int) -> "PromoCodeExpiration":
         if duration_days <= 0:
             raise ValueError("Продолжительность дней должна быть положительной")
 
-        return cls(
-            expires_at=datetime.now(timezone.utc) + timedelta(days=duration_days)
-        )
+        return cls(expires_at=datetime.now(timezone.utc) + timedelta(days=duration_days))
 
     @property
     def is_expired(self) -> bool:
@@ -42,8 +40,5 @@ class PromoCodeUsage:
     used_by: Optional[UUID] = None
 
     @staticmethod
-    def mark_used(user_id: UUID) -> 'PromoCodeUsage':
-        return PromoCodeUsage(
-            used_at=datetime.now(timezone.utc),
-            used_by=user_id
-        )
+    def mark_used(user_id: UUID) -> "PromoCodeUsage":
+        return PromoCodeUsage(used_at=datetime.now(timezone.utc), used_by=user_id)

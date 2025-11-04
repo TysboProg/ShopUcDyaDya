@@ -1,9 +1,9 @@
 from .promo import (
-    PromoResponse,
+    MessageResponse,
     PromoListResponse,
+    PromoResponse,
     PromoShortResponse,
     UsePromoResponse,
-    MessageResponse
 )
 
 __all__ = (

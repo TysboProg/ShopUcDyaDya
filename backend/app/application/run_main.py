@@ -1,5 +1,5 @@
-from settings.app import Application, get_app_options
 from application.main import main_app
+from settings.app import Application, get_app_options
 from settings.config import settings
 
 

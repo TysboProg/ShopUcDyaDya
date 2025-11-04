@@ -1,5 +1,3 @@
 from .promo import PromoRepositoryImpl
 
-__all__ = (
-    "PromoRepositoryImpl"
-)
+__all__ = "PromoRepositoryImpl"

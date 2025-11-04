@@ -1,14 +1,14 @@
-from settings.logger import GunicornLogger
 from fastapi import FastAPI
 from gunicorn.app.base import BaseApplication
+from settings.logger import GunicornLogger
 
 
 def get_app_options(
-        host: str,
-        port: int,
-        timeout: int,
-        workers: int,
-        log_level: str,
+    host: str,
+    port: int,
+    timeout: int,
+    workers: int,
+    log_level: str,
 ) -> dict:
     return {
         "accesslog": "-",
@@ -24,9 +24,9 @@ def get_app_options(
 
 class Application(BaseApplication):
     def __init__(
-            self,
-            application: FastAPI,
-            options: dict | None = None,
+        self,
+        application: FastAPI,
+        options: dict | None = None,
     ) -> None:
         self.options = options or {}
         self.application = application
@@ -37,11 +37,7 @@ class Application(BaseApplication):
 
     @property
     def config_options(self) -> dict:
-        return {
-            k: v
-            for k, v in self.options.items()
-            if k in self.cfg.settings and v is not None
-        }
+        return {k: v for k, v in self.options.items() if k in self.cfg.settings and v is not None}
 
     def load_config(self) -> None:
         for key, value in self.config_options.items():

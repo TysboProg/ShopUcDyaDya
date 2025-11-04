@@ -1,12 +1,12 @@
-import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
+import pytest
 from domain.entities.promo import PromoEntity
-from domain.enums import UcAmount, PromoStatus
+from domain.enums import PromoStatus, UcAmount
 from domain.events import DeletedPromoCodeEvent
-from domain.values.promo import PromoValue, PromoCodeExpiration
-from domain.exceptions.promo import PromoCodeExpiredException, PromoCodeAlreadyUsedException
+from domain.exceptions.promo import PromoCodeAlreadyUsedException, PromoCodeExpiredException
 from domain.services import PromoValidator
+from domain.values.promo import PromoCodeExpiration, PromoValue
 
 
 class TestPromoEntity:
@@ -19,19 +19,11 @@ class TestPromoEntity:
     @pytest.fixture
     def active_promo_entity(self):
         """Создание активного промокода"""
-        return PromoEntity.create(
-            code="TEST123",
-            uc_amount=UcAmount.UC300,
-            duration_days=7
-        )
+        return PromoEntity.create(code="TEST123", uc_amount=UcAmount.UC300, duration_days=7)
 
     def test_create_promo_entity(self):
         """Создание сущности промокода"""
-        promo = PromoEntity.create(
-            code="NEW123",
-            uc_amount=UcAmount.UC600,
-            duration_days=14
-        )
+        promo = PromoEntity.create(code="NEW123", uc_amount=UcAmount.UC600, duration_days=14)
 
         assert promo.code == "NEW123"
         assert promo.uc_amount == UcAmount.UC600
@@ -63,7 +55,7 @@ class TestPromoEntity:
             expiration=PromoCodeExpiration(
                 expires_at=datetime.now(timezone.utc) - timedelta(days=1)
             ),
-            status=PromoStatus.ACTIVE
+            status=PromoStatus.ACTIVE,
         )
 
         with pytest.raises(PromoCodeExpiredException):
@@ -92,7 +84,7 @@ class TestPromoEntity:
             expiration=PromoCodeExpiration(
                 expires_at=datetime.now(timezone.utc) - timedelta(days=1)
             ),
-            status=PromoStatus.ACTIVE
+            status=PromoStatus.ACTIVE,
         )
 
         promo.mark_expired()
@@ -110,7 +102,7 @@ class TestPromoEntity:
             expiration=PromoCodeExpiration(
                 expires_at=datetime.now(timezone.utc) - timedelta(days=1)
             ),
-            status=PromoStatus.EXPIRED
+            status=PromoStatus.EXPIRED,
         )
 
         assert promo.can_be_deleted() is True

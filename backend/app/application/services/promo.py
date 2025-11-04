@@ -1,33 +1,24 @@
-from typing import Optional, List
+from typing import List, Optional
 from uuid import UUID
 
 from domain.entities.promo import PromoEntity
+from domain.enums import PromoStatus, UcAmount
+from domain.exceptions.promo import (
+    PromoCodeAlreadyExistsException,
+    PromoCodeAlreadyUsedException,
+    PromoCodeExpiredException,
+    PromoCodeNotFoundException,
+)
 from domain.repositories.promo import PromoRepository
 from domain.services import PromoValidator
-from domain.enums import UcAmount, PromoStatus
-from domain.exceptions.promo import (
-    PromoCodeNotFoundException,
-    PromoCodeAlreadyExistsException,
-    PromoCodeExpiredException,
-    PromoCodeAlreadyUsedException,
-)
 
 
 class PromoService:
-    def __init__(
-            self,
-            promo_repository: PromoRepository,
-            promo_validator: PromoValidator
-    ) -> None:
+    def __init__(self, promo_repository: PromoRepository, promo_validator: PromoValidator) -> None:
         self.promo_repository = promo_repository
         self.promo_validator = promo_validator
 
-    async def create_promo(
-            self,
-            code: str,
-            uc_amount: UcAmount,
-            duration_days: int
-    ) -> PromoEntity:
+    async def create_promo(self, code: str, uc_amount: UcAmount, duration_days: int) -> PromoEntity:
         """Создание нового промокода"""
         # Проверяем, не существует ли уже промокод с таким кодом
         existing_promo = await self.promo_repository.get_by_code(code)
@@ -35,9 +26,7 @@ class PromoService:
             raise PromoCodeAlreadyExistsException(code=code)
 
         promo_entity = PromoEntity.create(
-            code=code,
-            uc_amount=uc_amount,
-            duration_days=duration_days
+            code=code, uc_amount=uc_amount, duration_days=duration_days
         )
 
         await self.promo_repository.save(promo_entity)
@@ -52,18 +41,15 @@ class PromoService:
         return await self.promo_repository.get_by_code(code)
 
     async def get_all_promos(
-            self,
-            uc_amount: Optional[str] = None,
-            status: Optional[str] = None,
-            limit: Optional[int] = None,
-            offset: Optional[int] = None
+        self,
+        uc_amount: Optional[str] = None,
+        status: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
     ) -> List[PromoEntity]:
         """Получение всех промокодов с фильтрацией"""
         return await self.promo_repository.get_all(
-            uc_amount=uc_amount,
-            status=status,
-            limit=limit,
-            offset=offset
+            uc_amount=uc_amount, status=status, limit=limit, offset=offset
         )
 
     async def use_promo(self, promo_id: UUID, user_id: str) -> PromoEntity:

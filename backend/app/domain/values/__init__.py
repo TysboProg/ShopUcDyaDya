@@ -1,8 +1,4 @@
-from .promo import (
-    PromoValue,
-    PromoCodeExpiration,
-    PromoCodeUsage
-)
+from .promo import PromoCodeExpiration, PromoCodeUsage, PromoValue
 
 __all__ = (
     "PromoValue",

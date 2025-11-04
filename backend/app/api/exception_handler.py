@@ -1,11 +1,12 @@
-from fastapi import Request, FastAPI
-from fastapi.responses import ORJSONResponse
 from domain.exceptions.promo import (
-    PromoCodeNotFoundException,
     PromoCodeAlreadyExistsException,
-    PromoCodeExpiredException,
     PromoCodeAlreadyUsedException,
+    PromoCodeExpiredException,
+    PromoCodeNotFoundException,
 )
+from fastapi import FastAPI, Request
+from fastapi.responses import ORJSONResponse
+
 
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(PromoCodeNotFoundException)

@@ -1,11 +1,3 @@
-from .promo import (
-    CreatedPromoCodeEvent,
-    DeletedPromoCodeEvent,
-    UsedPromoCodeEvent
-)
+from .promo import CreatedPromoCodeEvent, DeletedPromoCodeEvent, UsedPromoCodeEvent
 
-__all__ = (
-    "CreatedPromoCodeEvent",
-    "DeletedPromoCodeEvent",
-    "UsedPromoCodeEvent"
-)
+__all__ = ("CreatedPromoCodeEvent", "DeletedPromoCodeEvent", "UsedPromoCodeEvent")

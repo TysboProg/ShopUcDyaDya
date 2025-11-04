@@ -2,10 +2,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from domain.entities.base import BaseEntity
+from domain.enums import PromoStatus, UcAmount
 from domain.events import CreatedPromoCodeEvent, DeletedPromoCodeEvent
 from domain.services import PromoValidator
-from domain.values.promo import PromoValue, PromoCodeUsage, PromoCodeExpiration
-from domain.enums import PromoStatus, UcAmount
+from domain.values.promo import PromoCodeExpiration, PromoCodeUsage, PromoValue
 
 
 @dataclass
@@ -16,19 +16,14 @@ class PromoEntity(BaseEntity):
     status: PromoStatus = PromoStatus.ACTIVE
 
     @classmethod
-    def create(
-            cls,
-            code: str,
-            uc_amount: UcAmount,
-            duration_days: int
-    ) -> 'PromoEntity':
+    def create(cls, code: str, uc_amount: UcAmount, duration_days: int) -> "PromoEntity":
         if not code:
             raise ValueError("Код промокода не может быть пустым")
 
         new_promo = cls(
             promo_code=PromoValue(code=code, uc_amount=uc_amount),
             expiration=PromoCodeExpiration.create(duration_days),
-            status=PromoStatus.ACTIVE
+            status=PromoStatus.ACTIVE,
         )
         new_promo.register_event(CreatedPromoCodeEvent(code=code))
         return new_promo

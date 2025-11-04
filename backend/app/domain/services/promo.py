@@ -1,11 +1,8 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from domain.exceptions.promo import (
-    PromoCodeExpiredException,
-    PromoCodeAlreadyUsedException
-)
 from domain.enums import PromoStatus
+from domain.exceptions.promo import PromoCodeAlreadyUsedException, PromoCodeExpiredException
 
 if TYPE_CHECKING:
     from domain.entities.promo import PromoEntity
@@ -14,7 +11,7 @@ if TYPE_CHECKING:
 @dataclass
 class PromoValidator:
     @staticmethod
-    def validate_for_use(promo_entity: 'PromoEntity') -> None:
+    def validate_for_use(promo_entity: "PromoEntity") -> None:
         if promo_entity.status != PromoStatus.ACTIVE:
             raise PromoCodeAlreadyUsedException(promo_entity.code)
 

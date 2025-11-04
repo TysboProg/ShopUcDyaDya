@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import List, Optional
 from uuid import UUID
 
 from domain.entities.promo import PromoEntity
@@ -20,11 +20,11 @@ class PromoRepository(ABC):
 
     @abstractmethod
     async def get_all(
-            self,
-            uc_amount: Optional[str] = None,
-            status: Optional[str] = None,
-            limit: Optional[int] = None,
-            offset: Optional[int] = None
+        self,
+        uc_amount: Optional[str] = None,
+        status: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
     ) -> List[PromoEntity]:
         """Получение списка промокодов с фильтрацией"""
 

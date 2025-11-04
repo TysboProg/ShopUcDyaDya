@@ -1,15 +1,14 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import select, and_
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from domain.entities import PromoEntity
-from domain.repositories import PromoRepository
-from domain.values import PromoValue, PromoCodeUsage, PromoCodeExpiration
 from domain.enums import PromoStatus
+from domain.repositories import PromoRepository
+from domain.values import PromoCodeExpiration, PromoCodeUsage, PromoValue
 from infra.db.models import Promocode
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class PromoRepositoryImpl(PromoRepository):
@@ -71,11 +70,11 @@ class PromoRepositoryImpl(PromoRepository):
         return self._to_entity(promo_model)
 
     async def get_all(
-            self,
-            uc_amount: Optional[str] = None,
-            status: Optional[str] = None,
-            limit: Optional[int] = None,
-            offset: Optional[int] = None
+        self,
+        uc_amount: Optional[str] = None,
+        status: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
     ) -> List[PromoEntity]:
         """Получение списка промокодов с фильтрацией"""
         stmt = select(Promocode)
@@ -119,23 +118,22 @@ class PromoRepositoryImpl(PromoRepository):
     @staticmethod
     def _to_entity(promo_model: Promocode) -> PromoEntity:
         """Преобразование модели SQLAlchemy в доменную сущность"""
-        promo_code = PromoValue(
-            code=promo_model.code,
-            uc_amount=promo_model.uc_amount
-        )
+        promo_code = PromoValue(code=promo_model.code, uc_amount=promo_model.uc_amount)
 
         expiration = PromoCodeExpiration(expires_at=promo_model.expires_at)
 
         usage = PromoCodeUsage(
-            used_at=getattr(promo_model, 'used_at', None),
-            used_by=getattr(promo_model, 'used_by', None)
+            used_at=getattr(promo_model, "used_at", None),
+            used_by=getattr(promo_model, "used_by", None),
         )
 
         promo_entity = PromoEntity(
             promo_code=promo_code,
             expiration=expiration,
             usage=usage,
-            status=PromoStatus(promo_model.status.value) if hasattr(promo_model.status, 'value') else PromoStatus(promo_model.status),
+            status=PromoStatus(promo_model.status.value)
+            if hasattr(promo_model.status, "value")
+            else PromoStatus(promo_model.status),
             created_at=promo_model.created_at,
         )
 

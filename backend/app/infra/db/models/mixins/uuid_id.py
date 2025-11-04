@@ -8,7 +8,8 @@ class UUIDIDMixin:
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        unique=True, nullable=False,
+        unique=True,
+        nullable=False,
         default=uuid.uuid4,
-        server_default=str(uuid.uuid4())
+        server_default=str(uuid.uuid4()),
     )

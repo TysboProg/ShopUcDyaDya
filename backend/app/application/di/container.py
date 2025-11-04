@@ -1,14 +1,10 @@
 from dishka import make_async_container
-from dishka.integrations.fastapi import setup_dishka, FastapiProvider
+from dishka.integrations.fastapi import FastapiProvider, setup_dishka
 from fastapi import FastAPI
-
-from .providers import (
-    RepositoryProvider,
-    DatabaseProvider,
-    ServiceProvider,
-    PromoValidatorProvider
-)
 from settings.config import settings
+
+from .providers import DatabaseProvider, PromoValidatorProvider, RepositoryProvider, ServiceProvider
+
 
 def create_container():
     providers = [

@@ -1,5 +1,3 @@
 from .promo import PromoService
 
-__all__ = (
-    "PromoService",
-)
+__all__ = ("PromoService",)

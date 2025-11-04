@@ -1,8 +1,10 @@
-import pytest
-from datetime import datetime, timezone, timedelta
-from domain.enums import UcAmount
-from domain.values.promo import PromoValue, PromoCodeExpiration, PromoCodeUsage
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
+
+import pytest
+from domain.enums import UcAmount
+from domain.values.promo import PromoCodeExpiration, PromoCodeUsage, PromoValue
+
 
 class TestPromoValue:
     """Тесты для значения промокода"""
@@ -27,7 +29,7 @@ class TestPromoValue:
     def test_create_without_uc_amount_raises_error(self):
         """Создание промокода без номинала UC вызывает ошибку"""
         with pytest.raises(ValueError, match="Номинал UC не может быть пустым"):
-            PromoValue(code="TEST123",uc_amount=None)
+            PromoValue(code="TEST123", uc_amount=None)
 
 
 class TestPromoCodeExpiration:
@@ -52,17 +54,13 @@ class TestPromoCodeExpiration:
 
     def test_is_expired_when_not_expired(self):
         """Проверка, что не просроченный промокод не считается просроченным"""
-        expiration = PromoCodeExpiration(
-            expires_at=datetime.now(timezone.utc) + timedelta(days=1)
-        )
+        expiration = PromoCodeExpiration(expires_at=datetime.now(timezone.utc) + timedelta(days=1))
 
         assert not expiration.is_expired
 
     def test_is_expired_when_expired(self):
         """Проверка, что просроченный промокод считается просроченным"""
-        expiration = PromoCodeExpiration(
-            expires_at=datetime.now(timezone.utc) - timedelta(days=1)
-        )
+        expiration = PromoCodeExpiration(expires_at=datetime.now(timezone.utc) - timedelta(days=1))
 
         assert expiration.is_expired
 

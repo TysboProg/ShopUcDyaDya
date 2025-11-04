@@ -1,9 +1,9 @@
-import pytest
 from unittest.mock import Mock
 
-from domain.services import PromoValidator
+import pytest
 from domain.enums import PromoStatus
-from domain.exceptions.promo import PromoCodeExpiredException, PromoCodeAlreadyUsedException
+from domain.exceptions.promo import PromoCodeAlreadyUsedException, PromoCodeExpiredException
+from domain.services import PromoValidator
 
 
 class TestPromoValidator:

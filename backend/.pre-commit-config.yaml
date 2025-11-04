@@ -15,7 +15,6 @@ repos:
     rev: v2.5.0
     hooks:
       - id: pycln
-        args: [--config=pyproject.toml]
 
   - repo: https://github.com/pycqa/flake8
     rev: 6.1.0
@@ -31,6 +30,5 @@ repos:
           - types-redis
         args: [
           "--ignore-missing-imports",
-          "--exclude", "migrations/",
-          "--exclude", "tests/"
+          "--explicit-package-bases",
         ]

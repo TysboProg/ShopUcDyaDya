@@ -5,21 +5,11 @@ from domain.entities.promo import PromoEntity
 from domain.enums import PromoStatus, UcAmount
 from domain.events import DeletedPromoCodeEvent
 from domain.exceptions.promo import PromoCodeAlreadyUsedException, PromoCodeExpiredException
-from domain.services import PromoValidator
 from domain.values.promo import PromoCodeExpiration, PromoValue
 
 
 class TestPromoEntity:
     """Тесты для сущности промокода"""
-
-    @pytest.fixture
-    def promo_validator(self):
-        return PromoValidator()
-
-    @pytest.fixture
-    def active_promo_entity(self):
-        """Создание активного промокода"""
-        return PromoEntity.create(code="TEST123", uc_amount=UcAmount.UC300, duration_days=7)
 
     def test_create_promo_entity(self):
         """Создание сущности промокода"""

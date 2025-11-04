@@ -9,33 +9,6 @@ from domain.services import PromoValidator
 class TestPromoValidator:
     """Тесты для валидатора промокодов"""
 
-    @pytest.fixture
-    def active_promo_mock(self):
-        """Мок активного промокода"""
-        mock = Mock()
-        mock.status = PromoStatus.ACTIVE
-        mock.code = "ACTIVE123"
-        mock.expiration.is_expired = False
-        return mock
-
-    @pytest.fixture
-    def expired_promo_mock(self):
-        """Мок просроченного промокода"""
-        mock = Mock()
-        mock.status = PromoStatus.ACTIVE
-        mock.code = "EXPIRED123"
-        mock.expiration.is_expired = True
-        return mock
-
-    @pytest.fixture
-    def used_promo_mock(self):
-        """Мок использованного промокода"""
-        mock = Mock()
-        mock.status = PromoStatus.USED
-        mock.code = "USED123"
-        mock.expiration.is_expired = False
-        return mock
-
     def test_validate_active_promo(self, active_promo_mock):
         """Валидация активного промокода не вызывает исключений"""
         PromoValidator.validate_for_use(active_promo_mock)

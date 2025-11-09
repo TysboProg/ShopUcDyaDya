@@ -1,5 +1,3 @@
-from unittest.mock import Mock
-
 import pytest
 from domain.enums import PromoStatus
 from domain.exceptions.promo import PromoCodeAlreadyUsedException, PromoCodeExpiredException

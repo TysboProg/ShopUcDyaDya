@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from domain.entities.promo import PromoEntity
+from domain.entities import PromoEntity
 from domain.enums import PromoStatus, UcAmount
 from domain.events import DeletedPromoCodeEvent
 from domain.exceptions.promo import PromoCodeAlreadyUsedException, PromoCodeExpiredException

@@ -24,6 +24,9 @@ dependencies = [
     "pytest-dotenv (>=0.5.2,<0.6.0)",
     "faker (>=37.12.0,<38.0.0)",
     "aiosqlite (>=0.21.0,<0.22.0)",
+    "taskiq (>=0.11.20,<0.12.0)",
+    "taskiq-redis (>=1.1.2,<2.0.0)",
+    "taskiq-aio-pika (>=0.4.4,<0.5.0)",
 ]
 
 [build-system]

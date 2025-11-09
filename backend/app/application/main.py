@@ -1,39 +1,8 @@
-from contextlib import asynccontextmanager
-
-from api.exception_handler import register_exception_handlers
 from api.routers import main_router
-from application.di import setup_di
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import ORJSONResponse
-from loguru import logger
+from application.create_app import create_app
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger.info("Starting FastAPI Lifespan")
-    yield
-    logger.info(
-        "Stopping FastAPI Lifespan",
-    )
-
-
-main_app = FastAPI(
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
-    default_response_class=ORJSONResponse,
-    lifespan=lifespan,
-)
-
-setup_di(main_app)
-register_exception_handlers(main_app)
-main_app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+main_app = create_app(
+    create_custom_static_urls=True,
 )
 
 main_app.include_router(main_router)

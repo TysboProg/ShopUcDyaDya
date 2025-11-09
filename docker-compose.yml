@@ -18,7 +18,54 @@ services:
     develop:
       watch:
         - action: rebuild
-          path: ./poetry.lock
+          path: ./poetry.lock     
+
+  taskiq_redis_worker:
+    build: backend
+    command: taskiq worker infra.redis.taskiq_redis:redis_broker
+    depends_on:
+      - redis
+    enviroment:
+      PYTHONPATH: app  
+
+  taskiq_rabbitmq_worker:
+    build: backend
+    command: taskiq worker infra.broker.taskiq_rabbitmq:rabbitmq_broker
+    depends_on:
+      - rabbitmq
+
+  taskiq_redis_scheduler:
+    build: backend
+    command: taskiq scheduler infra.redis.taskiq_redis:redis_broker:scheduler
+    depends_on:
+      - redis
+
+  taskiq_rabbitmq_scheduler:
+    build: backend
+    command: taskiq scheduler infra.broker.taskiq_rabbitmq:scheduler
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendfsync everysec
+    volumes:
+      - redis_data:/data
 
   pg:
     image: postgres:17
@@ -53,3 +100,5 @@ services:
 
 volumes:
   pgdata:
+  rabbitmq-data:
+  redis_data:

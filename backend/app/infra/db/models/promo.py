@@ -2,12 +2,12 @@ from datetime import datetime
 from typing import Optional
 
 from domain.enums import PromoStatus, UcAmount
-from infra.db.models.base import BaseTable
+from infra.db.models.mixins import BaseMixin
 from sqlalchemy import DateTime, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 
-class Promocode(BaseTable):
+class Promocode(BaseMixin):
     __tablename__ = "promo_codes"
 
     code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)

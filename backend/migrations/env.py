@@ -2,7 +2,7 @@ from logging.config import fileConfig
 
 import infra.db.models  # noqa
 from alembic import context
-from infra.db.models import Base
+from infra.db.models.mixins import Base
 from settings.config import settings
 from sqlalchemy import engine_from_config, pool
 

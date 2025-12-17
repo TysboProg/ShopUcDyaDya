@@ -14,7 +14,7 @@ from domain.enums import PromoStatus, UcAmount
 from domain.exceptions.promo import PromoCodeAlreadyExistsException, PromoCodeNotFoundException
 from fastapi import APIRouter, HTTPException, Query, status
 
-router = APIRouter(prefix="/promocode", tags=["Promocodes"], route_class=DishkaRoute)
+router = APIRouter(prefix="/promocode", tags=["Промокоды"], route_class=DishkaRoute)
 
 
 @router.post("/", response_model=PromoShortResponse)

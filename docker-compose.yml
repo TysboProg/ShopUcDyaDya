@@ -18,33 +18,51 @@ services:
     develop:
       watch:
         - action: rebuild
-          path: ./poetry.lock     
+          path: ./poetry.lock
 
   taskiq_redis_worker:
     build: backend
     command: taskiq worker infra.redis.taskiq_redis:redis_broker
     depends_on:
-      - redis
-    enviroment:
-      PYTHONPATH: app  
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_completed_successfully
+    environment:
+      PYTHONPATH: app
 
   taskiq_rabbitmq_worker:
     build: backend
     command: taskiq worker infra.broker.taskiq_rabbitmq:rabbitmq_broker
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+      app:
+        condition: service_completed_successfully
+    environment:
+      PYTHONPATH: app
 
   taskiq_redis_scheduler:
     build: backend
     command: taskiq scheduler infra.redis.taskiq_redis:redis_broker:scheduler
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_completed_successfully
+    environment:
+      PYTHONPATH: app
 
   taskiq_rabbitmq_scheduler:
     build: backend
     command: taskiq scheduler infra.broker.taskiq_rabbitmq:scheduler
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+      app:
+        condition: service_completed_successfully
+    environment:
+      PYTHONPATH: app
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -57,6 +75,11 @@ services:
       RABBITMQ_DEFAULT_PASS: password
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
   redis:
     image: redis:7-alpine
@@ -66,6 +89,11 @@ services:
     command: redis-server --appendfsync everysec
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
   pg:
     image: postgres:17

@@ -45,12 +45,6 @@ class DatabaseSettings(BaseSettings):
             url=f"postgresql+asyncpg://{self.user}:{self.password}@pg:{self.port}/{self.name}",
         )
 
-    @property
-    def url_sync(self) -> PostgresDsn:
-        return PostgresDsn(
-            url=f"postgresql+psycopg2://{self.user}:{self.password}@pg:{self.port}/{self.name}",
-        )
-
 
 class RabbitSettings(BaseSettings):
     port: int = Field(default=5672, alias="PORT")

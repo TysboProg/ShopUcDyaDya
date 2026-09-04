@@ -1,12 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from redis_fastapi import FastAPIRedis
 
-from shopucdyadya.api.router import router
-from shopucdyadya.core.config import settings
-from shopucdyadya.di.container import lifespan, setup_di
+from shopucdyadya.app.config import settings
+from shopucdyadya.app.di.container import setup_di
 
 app = FastAPI(
-    lifespan=lifespan,
     title=settings.openapi.title,
     version=settings.openapi.version,
     summary=settings.openapi.summary,
@@ -24,6 +23,12 @@ app.add_middleware(
     allow_headers=settings.app.allow_headers,
 )
 
-app.include_router(router)
+FastAPIRedis(app).lifespan().caching()
+
 
 setup_di(app)
+
+
+@app.get("/")
+def read_root() -> dict[str, str]:
+    return {"message": "Hello World"}

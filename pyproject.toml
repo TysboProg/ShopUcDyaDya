@@ -8,11 +8,14 @@ dependencies = [
     "alembic==1.19.2",
     "asyncpg>=0.31.0",
     "dishka>=1.10.1",
+    "fastapi-redis-sdk>=0.8.0",
     "fastapi[standard-no-fastapi-cloud-cli]>=0.141.1",
     "pydantic==2.13.5",
     "pydantic-settings>=2.15.0",
     "redis>=8.1.0",
+    "ruff==0.16.6",
     "sqlalchemy>=2.0.52",
+    "sqlmodel>=0.0.42",
     "taskiq>=0.12.6",
     "taskiq-aio-pika>=0.6.0",
 ]
@@ -23,6 +26,7 @@ dev = [
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "ruff>=0.16.5",
+    "testcontainers[postgres]>=4.15.0",
 ]
 
 [build-system]

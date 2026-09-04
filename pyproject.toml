@@ -49,6 +49,17 @@ select = [
     "UP",
     "SIM",
     "ANN",
+    "W",   # pycodestyle warnings
+    "PT",  # flake8-pytest-style (специальные проверки для pytest!)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Игнорируем определенные правила только для папки tests
+"tests/*" = [
+    "S101",   # Разрешить использование assert (в проде нельзя, в тестах нужно)
+    "ARG001", # Разрешить неиспользуемые аргументы в функциях (фикстуры pytest)
+    "SLF001", # Разрешить доступ к защищенным переменным (_private) в тестах
+    "ANN", # Разрешить отсутствие аннотаций типов в тестах
 ]
 
 [tool.ruff.format]
@@ -83,6 +94,14 @@ init_typed = true
 warn_required_dynamic_aliases = true
 
 [[tool.mypy.overrides]]
-module = "shopucdyadya.db.migrations.*"
+module = "shopucdyadya.migrations.*"
 disallow_untyped_calls = false
 warn_unreachable = false
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+# Не требовать аннотации типов аргументов и возвращаемых значений для тестов
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+# Разрешить untyped фикстуры
+check_untyped_defs = true

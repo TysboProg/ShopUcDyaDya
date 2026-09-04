@@ -29,3 +29,6 @@ worker:
 	
 scheduler:
 	uv run taskiq scheduler shopucdyadya.workers.scheduler:scheduler
+
+docker:
+	docker compose up -d --build

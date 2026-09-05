@@ -4,4 +4,4 @@ from shopucdyadya.infra.mixins.uuid_id import UUIDIDMixin
 
 
 class Base(UUIDIDMixin, CreatedAtMixin, UpdatedAtMixin):
-    pass
+    """Common fields shared by persistent domain models."""

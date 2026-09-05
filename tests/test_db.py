@@ -1,6 +1,7 @@
 import pytest
 from sqlalchemy import inspect, text
 
+
 @pytest.mark.asyncio
 async def test_database(db_session) -> None:
     """Test that the database connection works."""

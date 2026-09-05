@@ -11,6 +11,7 @@ from .schemas import PromoStatus, UcAmount
 uc_amount_enum = ENUM(UcAmount, name="ucamount", create_type=False)
 promo_status_enum = ENUM(PromoStatus, name="promostatus", create_type=False)
 
+
 class Promocode(Base, table=True):
     __tablename__ = "promocodes"
 

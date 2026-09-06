@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from shopucdyadya.app.config import settings
 from shopucdyadya.infra.base_model import Base
-from shopucdyadya.modules import models as _models  # noqa: F401, F403
+from shopucdyadya.modules import models as _models  # noqa: F401
 
 config = context.config
 

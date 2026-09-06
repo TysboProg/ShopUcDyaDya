@@ -6,10 +6,20 @@ from sqlmodel import Field
 
 from shopucdyadya.infra.base_model import Base
 
-from .schemas import PromoStatus, UcAmount
+from .enums import PromoStatus, UcAmount
 
-uc_amount_enum = ENUM(UcAmount, name="ucamount", create_type=False)
-promo_status_enum = ENUM(PromoStatus, name="promostatus", create_type=False)
+uc_amount_enum = ENUM(
+    UcAmount,
+    name="ucamount",
+    create_type=False,
+    values_callable=lambda enum_cls: [item.value for item in enum_cls],
+)
+promo_status_enum = ENUM(
+    PromoStatus,
+    name="promostatus",
+    create_type=False,
+    values_callable=lambda enum_cls: [item.value for item in enum_cls],
+)
 
 
 class Promocode(Base, table=True):

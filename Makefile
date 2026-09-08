@@ -19,7 +19,7 @@ typecheck:
 
 # --- ЗАПУСК И СБОРКА ПРОЕКТА ---
 dev:
-	uv run uvicorn shopucdyadya.main:app --reload
+	uv run uvicorn shopucdyadya.app.factory:create_app --factory --reload
 
 test:
 	pytest -s -v

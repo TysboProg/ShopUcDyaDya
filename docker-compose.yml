@@ -47,7 +47,28 @@ services:
       timeout: 3s
       retries: 3
 
+  fastapi-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi-app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.docker
+    volumes:
+      - fastapi_data:/data
+    depends_on:
+      pg:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+
 volumes:
   pgdata:
   rabbitmq-data:
   redis_data:
+  fastapi_data:

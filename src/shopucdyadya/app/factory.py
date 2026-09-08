@@ -1,7 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from redis_fastapi import FastAPIRedis
-from redis_fastapi import get_settings as get_redis_settings
+from redis_fastapi import (
+    FastAPIRedis,
+    get_settings as get_redis_settings,
+    rate_limit,
+)
 
 from shopucdyadya.app.config import settings
 from shopucdyadya.app.di.container import setup_di
@@ -36,7 +39,7 @@ def create_app() -> FastAPI:
 
 
 def register_routes(app: FastAPI) -> None:
-    @app.get("/")
+    @app.get("/", dependencies=[Depends(rate_limit("10/minute"))])
     def read_root() -> dict[str, str]:
         return {"message": "Hello World"}
     

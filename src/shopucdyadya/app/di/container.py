@@ -3,6 +3,8 @@ from dishka.integrations.fastapi import FastapiProvider, setup_dishka
 from fastapi import FastAPI
 
 from shopucdyadya.app.di.providers import (
+    BrokerProvider,
+    CacheProvider,
     DatabaseProvider,
     RepositoryProvider,
     ServiceProvider,
@@ -12,6 +14,8 @@ from shopucdyadya.app.di.providers import (
 def create_container() -> AsyncContainer:
     return make_async_container(
         DatabaseProvider(),
+        CacheProvider(),
+        BrokerProvider(),
         RepositoryProvider(),
         ServiceProvider(),
         FastapiProvider(),

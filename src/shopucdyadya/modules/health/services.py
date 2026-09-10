@@ -2,14 +2,14 @@ import logging
 
 from redis.asyncio import Redis
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from taskiq_aio_pika import AioPikaBroker
 
 logger = logging.getLogger(__name__)
 
 
 class DatabaseHealthCheck:
-    def __init__(self, session_factory: AsyncSession) -> None:
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
     async def is_available(self) -> bool:

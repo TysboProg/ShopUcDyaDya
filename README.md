@@ -1,113 +1,92 @@
-# Магазин дядюшки👀😎
+# Uncle's Shop
 
-Магазин дядюшки — это сайт для удобной и быстрой покупки UC для игры PUBG Mobile. С помощью этого бота пользователи могут легко пополнить свой игровой счет, выбрать нужное количество UC и получить их в кратчайшие сроки.
+Uncle's Shop is a Telegram-based PUBG Mobile UC top-up service. Customers will be able to browse available UC packages, place an order, pay for it, and receive their purchase through the Telegram bot.
 
-## Основные функции
+The project is under development. The features below describe the intended customer experience at the final stage; availability may vary while development is in progress.
 
-- **Покупка UC**: Выбор нужного количества UC и оплата через удобные платежные системы.
-- **Поддержка 24/7**: Круглосуточная поддержка пользователей для решения любых вопросов.
-- **Автоматическая доставка**: UC приходит в виде промокода в специального тг бота для выдачи.
-- **Простота использования**: Удобный интерфейс и пошаговые инструкции.
+## Planned customer features
 
-## Фоновые задачи
+- Browse the available PUBG Mobile UC packages and their prices.
+- Place and pay for an order using the supported payment methods.
+- Receive the purchased UC through a redemption code delivered by the Telegram bot.
+- View order progress and receive purchase notifications in Telegram.
+- Contact customer support for help with orders and payments.
+- Use the shop through a Telegram Mini App with Telegram account verification.
 
-Очередь работает через PostgreSQL и `pgqueuer`; RabbitMQ для очереди не нужен.
-Схема PgQueuer устанавливается, а Alembic-миграции применяются сервисом
-`db-init`; worker запускается сервисом
-`pgq-worker`.
+## Requirements
 
-```python
-from shopucdyadya.infra.broker import broker
+- Docker Desktop (Windows/macOS) or Docker Engine with the Docker Compose plugin (Linux).
+- A Telegram bot and its bot token, created through [BotFather](https://t.me/BotFather).
+- An ngrok account with an authtoken and a public HTTPS domain for Telegram Mini App access.
 
+## Configure the environment
 
-@broker.task("send_receipt")
-async def send_receipt(order_id: int) -> None: ...
+Create a private `.env` file from the example:
 
-
-await send_receipt.kiq(order_id)
+```powershell
+Copy-Item .env.example .env
 ```
 
-Аргументы задачи должны быть JSON-сериализуемыми. Для локального worker сначала
-выполните `pgq install`, затем `make worker`.
-
-## Production configuration and database roles
-
-Never commit `.env` or `.env.docker`. `.env.docker` is no longer used by Compose
-and is excluded from the Docker build context. If it has ever contained real
-credentials, rotate them and remove the file from the repository history as well
-as the current index.
-
-Create a private `.env` with `Copy-Item .env.example .env` (PowerShell) or
-`cp .env.example .env` (Linux/macOS), then replace every placeholder with a
-different strong secret. Compose passes the migration URL only to `db-init` and
-the runtime URL only to FastAPI, Aiogram, worker, and scheduler. The Postgres
-bootstrap account is only for provisioning; application containers do not get
-its password.
-
-The first initialization of an empty Postgres volume runs
-`docker/postgres/init/01-provision-roles.sh`. It creates two separate login
-roles:
-
-- `shopucdyadya_migrator` owns the application database and runs `pgq install`
-  and `alembic upgrade head`;
-- `shopucdyadya_runtime` is used by the running applications and receives
-  CRUD access to tables/sequences plus execute access to public functions.
-
-`db-init` grants the runtime role access to current objects and sets default
-privileges for objects created by future migrations. For an existing database
-volume, after setting the four role variables in `.env`, run the provisioning
-script once as the Postgres bootstrap administrator:
+On Linux or macOS:
 
 ```sh
-docker compose exec -T pg sh /docker-entrypoint-initdb.d/01-provision-roles.sh
+cp .env.example .env
 ```
 
-The roles can also be created manually with the database bootstrap/admin
-connection (replace both password placeholders with separate strong values):
+Edit `.env` and replace every example value with your own credentials. In particular:
 
-```sql
-CREATE ROLE shopucdyadya_migrator LOGIN PASSWORD 'replace-with-migration-secret';
-CREATE ROLE shopucdyadya_runtime LOGIN PASSWORD 'replace-with-runtime-secret';
-ALTER DATABASE shopucdyadya OWNER TO shopucdyadya_migrator;
-REVOKE CREATE ON SCHEMA public FROM PUBLIC;
-ALTER SCHEMA public OWNER TO shopucdyadya_migrator;
-GRANT CONNECT ON DATABASE shopucdyadya TO shopucdyadya_runtime;
-GRANT USAGE ON SCHEMA public TO shopucdyadya_runtime;
+- Set `POSTGRES_PASSWORD`, `RUNTIME_DB_PASSWORD`, and `MIGRATION_DB_PASSWORD` to separate strong passwords.
+- Keep the usernames and database name in the two database URLs consistent with `RUNTIME_DB_USER`, `MIGRATION_DB_USER`, and `POSTGRES_DB`.
+- URL-encode reserved characters in database passwords before placing them in `RUNTIME_DB_URL` and `MIGRATION_DB_URL`.
+- Set `BOT_TOKEN` to the token from BotFather.
+- Set `NGROK_AUTHTOKEN` to your ngrok agent token.
+- Set `WEBAPP_URL` to the exact HTTPS domain configured in your ngrok account, for example `https://your-domain.ngrok-free.app`.
+- Keep `CORS_ORIGINS` as `[]` when the web app is served through the same origin. If using a separate frontend, set it to a JSON list of its allowed origins, such as `["https://shop.example.com"]`.
+- Set `PROXY_URL` only if the bot needs an outbound proxy; otherwise leave it empty.
+
+Do not commit `.env` or put real credentials in `.env.example`.
+
+## Build and start
+
+From the project directory, run:
+
+```sh
+docker compose up --build -d
 ```
 
-The subsequent `db-init` run grants runtime CRUD, sequence, function and type
-permissions on the objects PgQueuer, Alembic and psycache create, and sets
-default privileges for later migrations.
+Compose starts PostgreSQL, prepares the database, and then starts the API, Telegram bot, background worker, scheduler, and ngrok tunnel. The first run may take a few minutes while images are built and the database is initialized.
 
-Then set `RUNTIME_DB_URL` to a `postgresql+psycopg://shopucdyadya_runtime:...`
-URL and `MIGRATION_DB_URL` to a distinct
-`postgresql+psycopg://shopucdyadya_migrator:...` URL. URL-encode reserved
-characters in passwords. Keep `POSTGRES_PASSWORD`, `RUNTIME_DB_PASSWORD`, and
-`MIGRATION_DB_PASSWORD` different. In managed PostgreSQL, create the two roles
-and assign database/schema ownership and grants through the provider's admin
-connection before starting `db-init`.
+Check service status and logs:
 
-Telegram WebApp requests send `X-Telegram-Init-Data`. The backend checks its
-signature and age with the bot token before using the signed Telegram user ID
-for rate limiting. Requests without Telegram data are keyed by client IP;
-data endpoints should use `require_telegram_user_id` so an arbitrary client
-cannot claim another user's ID. Configure `CORS_ORIGINS` as a JSON list of
-specific origins. The WebApp is served by the same FastAPI origin, so CORS can
-remain empty when no cross-origin frontend is used.
+```sh
+docker compose ps
+docker compose logs -f
+```
 
-### Open the WebApp from Telegram through ngrok
+To stop the services while preserving database data:
 
-Create an ngrok account, copy its agent authtoken, and reserve/claim a static
-HTTPS ngrok domain in the dashboard. Put the token in `NGROK_AUTHTOKEN` and the
-full domain, such as `https://your-name.ngrok-free.app`, in `WEBAPP_URL` in
-`.env`. The `ngrok` Compose service forwards that URL to `fastapi-app:8000`, and
-the bot includes the same URL in its `/start` WebApp button. Start the stack,
-send `/start` to the bot, and tap **Открыть магазин**. Opening
-`/products/fragment` directly in an ordinary browser has no signed Telegram
-`initData` and is expected to return 401.
+```sh
+docker compose down
+```
 
-The configured ngrok URL must exactly match the static URL assigned to your
-account. The tunnel command follows [ngrok's Docker agent guide](https://ngrok.com/download/docker).
----
+To stop the services and permanently remove the Compose database volume and its data:
 
-**Магазин дядюшки** — ваш надежный помощник в мире PUBG Mobile! 🎮
+```sh
+docker compose down --volumes
+```
+
+## Open the shop in Telegram
+
+After the services start, open your bot in Telegram and send `/start`. Tap the shop button to open the Mini App. Telegram authentication data is required for protected shop endpoints; opening those endpoints directly in a regular browser is expected to fail authentication.
+
+The ngrok domain in `WEBAPP_URL` must be the same public HTTPS domain configured for your ngrok account. The tunnel forwards requests to the local API service.
+
+## Local development
+
+The Docker Compose setup is the recommended way to run the full application because it also provides PostgreSQL and the public tunnel. To run Python tooling locally, install [uv](https://docs.astral.sh/uv/) and sync the project environment:
+
+```sh
+uv sync
+```
+
+Configure the required environment variables in `.env` before starting application commands. For a local API process, the database URL must use a host and port reachable from your machine rather than the Compose-only hostname `pg`.

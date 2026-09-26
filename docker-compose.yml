@@ -1,94 +1,133 @@
 services:
   pg:
     image: postgres:18
-    environment:
-      POSTGRES_DB: shopucdyadya
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123456
-      PGDATA: /var/lib/postgresql/data
+    restart: unless-stopped
     ports:
-      - "5433:5432"
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?Set the bootstrap admin role in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set the bootstrap admin password in .env}
+      RUNTIME_DB_USER: ${RUNTIME_DB_USER:?Set RUNTIME_DB_USER in .env}
+      RUNTIME_DB_PASSWORD: ${RUNTIME_DB_PASSWORD:?Set RUNTIME_DB_PASSWORD in .env}
+      MIGRATION_DB_USER: ${MIGRATION_DB_USER:?Set MIGRATION_DB_USER in .env}
+      MIGRATION_DB_PASSWORD: ${MIGRATION_DB_PASSWORD:?Set MIGRATION_DB_PASSWORD in .env}
+      PGDATA: /var/lib/postgresql/data
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init/01-provision-roles.sh:/docker-entrypoint-initdb.d/01-provision-roles.sh:ro
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 5s
       timeout: 3s
-      retries: 3
-
-  rabbitmq:
-    image: rabbitmq:4.3-management-alpine
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"
-      - "15872:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: user
-      RABBITMQ_DEFAULT_PASS: password
-    volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
-    healthcheck:
-      test: [ "CMD", "rabbitmqctl", "status" ]
-      interval: 5s
-      timeout: 3s
-      retries: 3
-
-  redis:
-    image: redis:8-alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
-    command: redis-server --appendfsync everysec
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 3
+      retries: 5
 
   fastapi-app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: fastapi-app
+    restart: unless-stopped
     command: uvicorn shopucdyadya.app.factory:create_app --factory --host 0.0.0.0 --port 8000
     ports:
-      - "8000:8000"
-    env_file:
-      - .env.docker
+      - "127.0.0.1:8000:8000"
+    environment:
+      RUNTIME_DB_URL: ${RUNTIME_DB_URL:?Set RUNTIME_DB_URL in .env}
+      BOT_TOKEN: ${BOT_TOKEN:?Set BOT_TOKEN in .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-[]}
     volumes:
       - fastapi_data:/data
     depends_on:
-      pg:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
 
   aiogram-app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: aiogram-app
+    restart: unless-stopped
     command: python -m shopucdyadya.app.bot
-    env_file:
-      - .env.docker
+    environment:
+      RUNTIME_DB_URL: ${RUNTIME_DB_URL:?Set RUNTIME_DB_URL in .env}
+      BOT_TOKEN: ${BOT_TOKEN:?Set BOT_TOKEN in .env}
+      PROXY_URL: ${PROXY_URL:-}
+      WEBAPP_URL: ${WEBAPP_URL:?Set WEBAPP_URL in .env}
     volumes:
       - aiogram-app:/data
     depends_on:
+      db-init:
+        condition: service_completed_successfully
+      ngrok:
+        condition: service_started
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok
+    restart: unless-stopped
+    command:
+      [
+        "http",
+        "fastapi-app:8000",
+        "--url",
+        "${WEBAPP_URL:?Set WEBAPP_URL in .env}"
+      ]
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:?Set NGROK_AUTHTOKEN in .env}
+    depends_on:
+      fastapi-app:
+        condition: service_started
+
+  db-init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: db-init
+    command: python -m shopucdyadya.jobs.db_init
+    environment:
+      MIGRATION_DB_URL: ${MIGRATION_DB_URL:?Set MIGRATION_DB_URL in .env}
+      RUNTIME_DB_USER: ${RUNTIME_DB_USER:?Set RUNTIME_DB_USER in .env}
+    depends_on:
       pg:
         condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    
+
+  pgq-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pgq-worker
+    restart: unless-stopped
+    command: pgq run shopucdyadya.jobs.worker:main
+    environment:
+      RUNTIME_DB_URL: ${RUNTIME_DB_URL:?Set RUNTIME_DB_URL in .env}
+      PGHOST: pg
+      PGPORT: 5432
+      PGUSER: ${RUNTIME_DB_USER:?Set RUNTIME_DB_USER in .env}
+      PGPASSWORD: ${RUNTIME_DB_PASSWORD:?Set RUNTIME_DB_PASSWORD in .env}
+      PGDATABASE: ${POSTGRES_DB:?Set POSTGRES_DB in .env}
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+
+  pgq-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pgq-scheduler
+    restart: unless-stopped
+    command: pgq run shopucdyadya.jobs.scheduler:main
+    environment:
+      RUNTIME_DB_URL: ${RUNTIME_DB_URL:?Set RUNTIME_DB_URL in .env}
+      PGHOST: pg
+      PGPORT: 5432
+      PGUSER: ${RUNTIME_DB_USER:?Set RUNTIME_DB_USER in .env}
+      PGPASSWORD: ${RUNTIME_DB_PASSWORD:?Set RUNTIME_DB_PASSWORD in .env}
+      PGDATABASE: ${POSTGRES_DB:?Set POSTGRES_DB in .env}
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
 
 volumes:
   pgdata:
-  rabbitmq-data:
-  redis_data:
   fastapi_data:
   aiogram-app:

@@ -1,13 +1,26 @@
 import asyncio
+import sys
 from logging.config import fileConfig
+from typing import TYPE_CHECKING
 
 from alembic import context
 from sqlalchemy import Connection, pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.schema import (
+    CheckConstraint,
+    ForeignKeyConstraint,
+    Index,
+    SchemaItem,
+    Table,
+    UniqueConstraint,
+)
 
 from shopucdyadya.app.config import settings
 from shopucdyadya.infra.base_model import Base
 from shopucdyadya.modules import models as _models  # noqa: F401
+
+if TYPE_CHECKING:
+    from alembic.environment import IncludeObjectFn, NameFilterType
 
 config = context.config
 
@@ -17,9 +30,10 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 if not config.get_main_option("sqlalchemy.url"):
-    config.set_main_option(
-        "sqlalchemy.url", settings.db_url.encoded_string() + "?async_fallback=True"
-    )
+    database_url = settings.migration_db_url or settings.runtime_db_url
+    if database_url is None:
+        raise RuntimeError("MIGRATION_DB_URL or RUNTIME_DB_URL must be configured for Alembic")
+    config.set_main_option("sqlalchemy.url", database_url.encoded_string())
 
 
 def run_migrations_offline() -> None:
@@ -46,8 +60,47 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+def include_object(
+    object: SchemaItem,
+    name: str | None,
+    type_: "NameFilterType",
+    reflected: bool,
+    compare_to: SchemaItem | None,
+) -> bool:
+    ignored_tables = ("pgqueuer", "psycache", "rate_limits", "shopucdyadya_cache_cache_store")
+    ignored_prefixes = ("pgqueuer_",)
+
+    if (
+        type_ == "table"
+        and name is not None
+        and (name.startswith(ignored_prefixes) or name in ignored_tables)
+    ):
+        return False
+
+    if isinstance(object, (Index, UniqueConstraint, ForeignKeyConstraint, CheckConstraint)):
+        parent_table = object.table
+        if isinstance(parent_table, Table):
+            t_name = parent_table.name
+            if (
+                t_name is not None
+                and t_name.startswith(ignored_prefixes)
+                or t_name in ignored_tables
+            ):
+                return False
+
+    return True
+
+
+if TYPE_CHECKING:
+    _assert_type: "IncludeObjectFn" = include_object
+
+
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_object=include_object,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
@@ -77,8 +130,11 @@ async def run_async_migrations() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
+    loop_factory = None
+    if sys.platform == "win32":
+        loop_factory = asyncio.SelectorEventLoop
 
-    asyncio.run(run_async_migrations())
+    asyncio.run(run_async_migrations(), loop_factory=loop_factory)
 
 
 if context.is_offline_mode():

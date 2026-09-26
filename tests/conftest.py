@@ -23,7 +23,7 @@ def postgres_container():
 
 @pytest.fixture(scope="session")
 def apply_migrations(postgres_container):
-    url = postgres_container.get_connection_url(driver="asyncpg")
+    url = postgres_container.get_connection_url(driver="psycopg")
 
     base_dir = Path(__file__).parent.parent
     alembic_cfg = Config(base_dir / "alembic.ini")
@@ -37,7 +37,7 @@ def apply_migrations(postgres_container):
 
 @pytest_asyncio.fixture(scope="session")
 async def async_engine(postgres_container, apply_migrations) -> AsyncGenerator[AsyncEngine]:
-    async_url = postgres_container.get_connection_url(driver="asyncpg")
+    async_url = postgres_container.get_connection_url(driver="psycopg")
 
     engine = create_async_engine(
         url=async_url,

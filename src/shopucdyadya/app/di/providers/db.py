@@ -15,7 +15,7 @@ class DatabaseProvider(Provider):
     @provide(scope=Scope.APP)
     async def get_engine(self) -> AsyncGenerator[AsyncEngine]:
         engine = create_async_engine(
-            url=settings.db_url.encoded_string(),
+            url=settings.require_runtime_db_url().encoded_string(),
             pool_size=8,
             max_overflow=12,
             pool_timeout=45,

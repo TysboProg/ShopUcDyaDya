@@ -1,37 +1,33 @@
-.PHONY: check format typecheck dev
+.PHONY: check format typecheck dev bot test worker docker
 
-# --- ПРОВЕРКА КОДА (LINT & FORMAT CHECK) ---
+# --- ПРОВЕРКА КОДА И ИСПРАВЛЕНИЕ КОДА (LINT & FORMAT CHECK & FIX) ---
 check:
-	@echo "---> Checking Python"
-	uv run ruff check .
-
-# --- ИСПРАВЛЕНИЕ И ФОРМАТИРОВАНИЕ (FIX & FORMAT) ---
-format:
-	@echo "---> Formatting Python (Ruff)..."
-	uv run ruff format .
 	uv run ruff check --fix .
 
+# --- ФОРМАТИРОВАНИЕ КОДА (FORMAT) ---
+format:
+	uv run ruff format .
+
 # --- ПРОВЕРКА ТИПОВ (TYPECHECK) ---
-# Запускает mypy для Python
 typecheck:
-	@echo "---> Typechecking Python (mypy)..."
 	uv run mypy .
 
-# --- ЗАПУСК И СБОРКА ПРОЕКТА ---
+# --- ЗАПУСК WEB-СЕРВЕРА ---
 dev:
 	uv run uvicorn shopucdyadya.app.factory:create_app --factory --reload
 
+# --- ЗАПУСК БОТА ---
 bot:
 	uv run python -m shopucdyadya.app.bot
 
+# --- ЗАПУСК ТЕСТОВ ---
 test:
 	pytest -s -v
 
+# --- ЗАПУСК ВОРКЕРА ДЛЯ ОЧЕРЕДИ ЗАДАЧ ---
 worker:
-	uv run taskiq worker shopucdyadya.infa.broker:broker
-	
-scheduler:
-	uv run taskiq scheduler shopucdyadya.jobs.scheduler:scheduler
+	uv run pgq run shopucdyadya.jobs.worker:main
 
+# --- ЗАПУСК И СБОРКА DOCKER ОБРАЗОВ ---
 docker:
 	docker compose up -d --build

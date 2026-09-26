@@ -1,14 +1,16 @@
-from collections.abc import AsyncGenerator
-
 from dishka import Provider, Scope, provide
-from redis.asyncio import Redis
+from sqlalchemy.ext.asyncio import AsyncEngine
 
-from shopucdyadya.app.config import settings
+from shopucdyadya.app.cache import AiogramCache, PgCache
 
 
 class CacheProvider(Provider):
+    """Ядро — доступно и FastAPI, и aiogram."""
+
     @provide(scope=Scope.APP)
-    async def get_redis_client(self) -> AsyncGenerator[Redis]:
-        client = Redis.from_url(settings.cache_url.encoded_string(), decode_responses=True)
-        yield client
-        await client.aclose()
+    def get_pg_cache(self, engine: AsyncEngine) -> PgCache:
+        return PgCache(engine)
+
+    @provide(scope=Scope.APP)
+    def get_aiogram_cache(self, core: PgCache) -> AiogramCache:
+        return AiogramCache(core)

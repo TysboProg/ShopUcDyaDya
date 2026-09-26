@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Магазин UC{% endblock %}
+
+{% block content %}
+<p id="telegram-auth-status" class="mt-3 rounded-lg bg-slate-200 p-3 text-sm text-slate-700" role="status" aria-live="polite"></p>
+<script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+<script>
+    const webApp = window.Telegram?.WebApp;
+    if (webApp) {
+        webApp.ready();
+        webApp.expand();
+    }
+
+    const authStatus = document.getElementById("telegram-auth-status");
+
+    document.body.addEventListener("htmx:configRequest", (event) => {
+        const initData = window.Telegram?.WebApp?.initData;
+        if (initData) {
+            event.detail.headers["X-Telegram-Init-Data"] = initData;
+        } else if (authStatus) {
+            authStatus.textContent = "Нет данных Telegram для авторизации запроса";
+            authStatus.classList.add("bg-red-100", "text-red-800");
+        }
+    });
+</script>
+
+<section class="space-y-5">
+    <header>
+        <h1 class="text-3xl font-bold">Магазин UC</h1>
+        <p class="mt-2 text-slate-500">
+            Выберите нужный пакет UC
+        </p>
+    </header>
+
+    <div
+        id="products"
+        hx-get="/products/fragment"
+        hx-trigger="load"
+        hx-target="#products"
+        hx-swap="innerHTML"
+        class="space-y-3"
+    >
+        <div class="rounded-xl bg-white p-4 shadow">
+            Загрузка товаров...
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -4,6 +4,7 @@
 .uv-cache
 .venv
 .env
+.env.*
+!.env.example
 __pycache__
-.env.local
 .idea

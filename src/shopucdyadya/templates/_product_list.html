@@ -1,0 +1,23 @@
+{% for product in products %}
+<article class="rounded-xl bg-white p-4 shadow">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="font-semibold">{{ product.name }}</h2>
+            <p class="text-sm text-slate-500">
+                {{ product.uc_amount }} UC
+            </p>
+        </div>
+
+        <button
+            class="rounded-lg bg-blue-600 px-4 py-2 text-white"
+            hx-post="/orders"
+            hx-target="#order-result"
+            hx-vals='{"product_id": "{{ product.id }}"}'
+        >
+            Купить
+        </button>
+    </div>
+</article>
+{% endfor %}
+
+<div id="order-result"></div>
